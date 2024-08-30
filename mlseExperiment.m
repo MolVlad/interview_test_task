@@ -3,7 +3,6 @@ close all;
 clc;
 F = findall(0,'type','figure','tag','TMWWaitbar');
 delete(F);
-fig = figure;
 
 %% Experiments parameters
 expParams = struct;
@@ -17,6 +16,7 @@ legendList = [];
 ww = waitbar(0, "start");
 % Iterate over channel lenghts
 denom = length(expParams.channelLengthList)*expParams.expCount*length(expParams.snrDbRange);
+fig = figure;
 for channelLengthIdx = 1:length(expParams.channelLengthList)
     channelLength = expParams.channelLengthList(channelLengthIdx);
     
@@ -36,7 +36,7 @@ for channelLengthIdx = 1:length(expParams.channelLengthList)
         
         % Tx bits
         txBits = randi([0 1], expParams.blockLength, 1);
-        disp(txBits')
+        % disp(txBits')
         
         % Modulate
         txSignal = 2*txBits-1;
@@ -54,10 +54,10 @@ for channelLengthIdx = 1:length(expParams.channelLengthList)
             rxSignal = conv(txSignal, cir) + noise;
             
             % Run equalizer
-            equalized = equalizer.run(rxSignal, cir);
+            rxBits = equalizer.run(rxSignal, cir);
             
             % Demodulate
-            rxBits = double(equalized > 0);
+            % rxBits = double(equalized > 0);
             
             % Calculate BER
             berSnrExp(snrIdx, expIdx) = mean(rxBits.' ~= txBits);
