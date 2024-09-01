@@ -9,25 +9,6 @@ static int8_t bit_num;
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     
-// if (nrhs != 1) {
-//         mexErrMsgTxt("One input required.");
-//     }
-// 
-//     // Проверяем тип входного аргумента
-//     // if (!mxIsComplex(prhs[0])) {
-//     //     mexErrMsgTxt("Input must be a complex array.");
-//     // }
-// 
-//     // Получаем указатель на данные и размер массива
-//     std::complex<float>* data = (std::complex<float>*)mxGetData(prhs[0]);
-//     mwSize size = mxGetNumberOfElements(prhs[0]);
-// 
-//     // Выводим элементы массива
-//     std::cout << "Array elements:" << std::endl;
-//     for (mwSize i = 0; i < size; ++i) {
-//         std::cout << data[i] << " ";
-//     }
-//     std::cout << std::endl;
 
     if (!mxIsChar(prhs[0])) {
         mexErrMsgTxt("first input must be a char array");
@@ -44,11 +25,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }else if (strcmp(command, "run") == 0) {
         if (obj != nullptr) {
             std::complex<float>* sig = (std::complex<float>*)mxGetData(prhs[1]);
-            // for (int i = 0; i < 3; i++)
-            // cout<< sig[i] << " "; 
-            // cout<<endl;
             std::complex<float>* CIR = (std::complex<float>*)mxGetData(prhs[2]);
-            // mwSize size = mxGetNumberOfElements(prhs[0]);
             std::int8_t equilised_bits[bit_num];
             obj->run(sig, CIR, equilised_bits);
             plhs[0] = mxCreateNumericMatrix(1, bit_num, mxINT8_CLASS, mxREAL);

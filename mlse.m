@@ -29,15 +29,11 @@ classdef mlse
             assert(iscolumn(estimatedCir), "Estimated CIR must be column vector");
             assert(length(receivedSignal) == this.channelLength + this.blockLength - 1, "Input signal has wrong size");
             assert(length(estimatedCir) == this.channelLength, "Estimated CIR has wrong size");
-%             k = [0.458922034450140, 0.536307469722595,  -0.376288483530962, 1.32092237374003,   -0.376288483530962, 1.32092237374003,-1.29413255243124, 0.248307434294841,  1.29413255243124,   -0.248307434294841, -1.29413255243124,  0.248307434294841,1.29413255243124,  -0.248307434294841, -1.29413255243124,  0.248307434294841,  1.29413255243124,   -0.248307434294841,-1.29413255243124, 0.248307434294841,  1.29413255243124,   -0.248307434294841, -1.29413255243124,  0.248307434294841,1.29413255243124,  -0.248307434294841, -0.376288483530962, 1.32092237374003,   -1.29413255243124,  0.248307434294841,0.376288483530962, -1.32092237374003,  0.835210517981102,  -0.784614904017436];
-%             b = [-0.458922034450140, -0.536307469722595, 0.835210517981102, -0.784614904017436];
-% k = k(1:2:end) + 1i*k(2:2:end);
-% b = b(1:2:end) + 1i*b(2:2:end);
-%             equalized = mlse_full(this, k, b);
-%             equalized_mex = MLSEmexFunc('run', this.prepare_data_for_mex(k), this.prepare_data_for_mex(b));
+ 
             equalized = mlse_full(this, receivedSignal, estimatedCir);
 
             equalized_mex = MLSEmexFunc('run', this.prepare_data_for_mex(receivedSignal.'), this.prepare_data_for_mex(estimatedCir.'));
+       
             if ~isequal(equalized, double(equalized_mex))
                 error("MATLAB and C++ realisations show different results");
             else 
