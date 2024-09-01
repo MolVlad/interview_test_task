@@ -4,6 +4,7 @@ clc;
 F = findall(0,'type','figure','tag','TMWWaitbar');
 delete(F);
 
+make;
 %% Experiments parameters
 expParams = struct;
 expParams.channelLengthList = 1:5;
@@ -18,8 +19,9 @@ ww = waitbar(0, "start");
 denom = length(expParams.channelLengthList)*expParams.expCount*length(expParams.snrDbRange);
 fig = figure;
 for channelLengthIdx = 1:length(expParams.channelLengthList)
+
     channelLength = expParams.channelLengthList(channelLengthIdx);
-    
+    MLSEmexFunc('new', int8(expParams.blockLength), int8(channelLength));
     % Initialize equalizer
     equalizer = mlse(channelLength, expParams.blockLength);
     idx_chan = (channelLengthIdx - 1)*expParams.expCount*length(expParams.snrDbRange);
@@ -54,10 +56,10 @@ for channelLengthIdx = 1:length(expParams.channelLengthList)
             rxSignal = conv(txSignal, cir) + noise;
             
             % Run equalizer
-            rxBits = equalizer.run(rxSignal, cir);
+            equalized = equalizer.run(rxSignal, cir);
             
             % Demodulate
-            % rxBits = double(equalized > 0);
+            rxBits = double(equalized > 0);
             
             % Calculate BER
             berSnrExp(snrIdx, expIdx) = mean(rxBits.' ~= txBits);

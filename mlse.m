@@ -21,6 +21,7 @@ classdef mlse
             states_char = dec2bin(0:2^len - 1);
             states_char_reshaped = reshape(states_char, 1, [])';
             states = reshape(str2num(states_char_reshaped), [], len);
+            states = 2*states - 1;
         end
 
         function equalized = run(this, receivedSignal, estimatedCir)
@@ -28,9 +29,28 @@ classdef mlse
             assert(iscolumn(estimatedCir), "Estimated CIR must be column vector");
             assert(length(receivedSignal) == this.channelLength + this.blockLength - 1, "Input signal has wrong size");
             assert(length(estimatedCir) == this.channelLength, "Estimated CIR has wrong size");
-
+%             k = [0.458922034450140, 0.536307469722595,  -0.376288483530962, 1.32092237374003,   -0.376288483530962, 1.32092237374003,-1.29413255243124, 0.248307434294841,  1.29413255243124,   -0.248307434294841, -1.29413255243124,  0.248307434294841,1.29413255243124,  -0.248307434294841, -1.29413255243124,  0.248307434294841,  1.29413255243124,   -0.248307434294841,-1.29413255243124, 0.248307434294841,  1.29413255243124,   -0.248307434294841, -1.29413255243124,  0.248307434294841,1.29413255243124,  -0.248307434294841, -0.376288483530962, 1.32092237374003,   -1.29413255243124,  0.248307434294841,0.376288483530962, -1.32092237374003,  0.835210517981102,  -0.784614904017436];
+%             b = [-0.458922034450140, -0.536307469722595, 0.835210517981102, -0.784614904017436];
+% k = k(1:2:end) + 1i*k(2:2:end);
+% b = b(1:2:end) + 1i*b(2:2:end);
+%             equalized = mlse_full(this, k, b);
+%             equalized_mex = MLSEmexFunc('run', this.prepare_data_for_mex(k), this.prepare_data_for_mex(b));
             equalized = mlse_full(this, receivedSignal, estimatedCir);
-%             equalized = viterbi(this, receivedSignal, estimatedCir);
+
+            equalized_mex = MLSEmexFunc('run', this.prepare_data_for_mex(receivedSignal.'), this.prepare_data_for_mex(estimatedCir.'));
+            if ~isequal(equalized, double(equalized_mex))
+                error("MATLAB and C++ realisations show different results");
+            else 
+                disp("MATLAB and C++ realisations are the same");
+            end 
+
+            %             equalized = viterbi(this, receivedSignal, estimatedCir);
+        end
+
+        function data_out = prepare_data_for_mex(this, data_in)
+            data_out = [real(data_in); imag(data_in)];
+            data_out = reshape(data_out, 1, []);
+            data_out = single(data_out);
         end
 
         function equalized = viterbi(this, receivedSignal, estimatedCir)
@@ -70,7 +90,7 @@ classdef mlse
         function equalized = mlse_full(this, receivedSignal, estimatedCir)
             candidates = zeros(size(this.states_mlse, 1), this.channelLength + this.blockLength - 1);
             for i = 1:size(this.states_mlse, 1)
-                candidates(i, :) = conv(this.states_mlse(i, :)*2 - 1, estimatedCir);
+                candidates(i, :) = conv(this.states_mlse(i, :), estimatedCir);
             end
             err = sum(abs(candidates - receivedSignal.'), 2);
             [~, idx] = min(err);
